@@ -1,6 +1,6 @@
 CC=mcs
 PRJ=Quads
-SRC=$(PRJ).cs
+SRC=Quadtree.cs ISplitable.cs Square.cs $(PRJ).cs
 OUT=$(PRJ).exe
 REF=System.Drawing.dll
 

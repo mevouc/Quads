@@ -8,6 +8,7 @@ public class Quads
 
   static private bool Run()
   {
+    Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     return true;
   }
 

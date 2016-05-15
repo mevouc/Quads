@@ -58,7 +58,7 @@ public class Quads
     return err;
   }
 
-  static void Save()
+  static void Save(string path)
   {
     Bitmap newImg = new Bitmap(img);
     foreach (Square sqr in squares)
@@ -69,10 +69,10 @@ public class Quads
           newImg.SetPixel(i, j, sqr.Color);
       }
     }
-    newImg.Save("img/out.png");
+    newImg.Save("img/" + path + ".png");
   }
 
-  static private bool Run()
+  static private bool Run(string path)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     for (; N > 0; N--)
@@ -80,13 +80,13 @@ public class Quads
       Err(qt);
       qt.max().subdivide();
     }
-    Save();
+    Save(path);
     return true;
   }
 
   static public int Main(string[] args)
   {
-    if (args.Length != 2)
+    if (args.Length < 2)
     {
       Console.Error.WriteLine("This program takes 2 arguments.");
       return 1;
@@ -97,6 +97,8 @@ public class Quads
       Console.Error.WriteLine("The last argument should be an integer.");
       return 1;
     }
-    return Run() ? 0 : 1;
+    if (args.Length == 3)
+      return Run(args[2]) ? 0 : 1;
+    return Run("out") ? 0 : 1;
   }
 }

@@ -12,6 +12,9 @@ img
 # Exe files
 *.exe
 
+# Mono debug files
+*.exe.mdb
+
 # User-specific files
 *.suo
 *.user

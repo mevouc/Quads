@@ -53,9 +53,9 @@ public class Square : ISplitable<Square>
     int sumR = 0;
     int sumG = 0;
     int sumB = 0;
-    for (int i = x - w / 2; i < x + w / 2; i++)
+    for (int i = x; i < x + w; i++)
     {
-      for (int j = y - h / 2; j < y + h / 2; j++)
+      for (int j = y; j < y + h; j++)
       {
         Color pixelColor = img.GetPixel(i, j);
         sumA += pixelColor.A;
@@ -75,9 +75,9 @@ public class Square : ISplitable<Square>
   private int Err()
   {
     int err = 0;
-    for (int i = x - w / 2; i < img.Width && i < x + w / 2; i++)
+    for (int i = x; i < x + w; i++)
     {
-      for (int j = y - h / 2; j < img.Height && j < y + h / 2; j++)
+      for (int j = y; j < y + h; j++)
       {
         err += Math.Abs(color.A - img.GetPixel(i, j).A);
         err += Math.Abs(color.R - img.GetPixel(i, j).R);
@@ -104,8 +104,8 @@ public class Square : ISplitable<Square>
     Square.img = img;
     this.w = img.Width;
     this.h = img.Height;
-    this.x = this.w / 2;
-    this.y = this.h / 2;
+    this.x = 0;
+    this.y = 0;
     this.color = this.Average();
     this.Error = this.Err();
     Quads.AddSquare(this);
@@ -118,10 +118,16 @@ public class Square : ISplitable<Square>
     if (halfW * halfH == 0)
       return null;
     Square[] smallSquares = new Square[4];
-    smallSquares[0] = new Square(x + halfW / 2, y + halfH / 2, halfW, halfH);
-    smallSquares[1] = new Square(x + halfW / 2, y - halfH / 2, halfW, halfH);
-    smallSquares[2] = new Square(x - halfW / 2, y - halfH / 2, halfW, halfH);
-    smallSquares[3] = new Square(x - halfW / 2, y + halfH / 2, halfW, halfH);
+    int tmpW = halfW;
+    int tmpH = halfH;
+    if (this.w % 2 != 0)
+      tmpW++;
+    if (this.h % 2 != 0)
+      tmpH++;
+    smallSquares[0] = new Square(this.x, this.y, halfW, halfH);
+    smallSquares[1] = new Square(this.x, this.y + halfH, tmpW, tmpH);
+    smallSquares[2] = new Square(this.x + halfW, this.y + halfH, tmpW, tmpH);
+    smallSquares[3] = new Square(this.x + halfW, this.y, tmpW, tmpH);
     Quads.RmSquare(this);
     return smallSquares;
   }

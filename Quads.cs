@@ -30,7 +30,7 @@ public class Quads
     b = tmp;
   }
 
-  static public Quadtree<Square>[] sort(Quadtree<Square>[] qts, int[] errs)
+  static private Quadtree<Square>[] sort(Quadtree<Square>[] qts, int[] errs)
   {
     for (var i = 0; i < qts.Length; i++)
     {
@@ -60,12 +60,12 @@ public class Quads
 
   static void Save(string path)
   {
-    Bitmap newImg = new Bitmap(img);
+    Bitmap newImg = new Bitmap(img.Width, img.Height);
     foreach (Square sqr in squares)
     {
-      for (int i = sqr.X - sqr.W / 2; i < sqr.X + sqr.W / 2; i++)
+      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
       {
-        for (int j = sqr.Y - sqr.H / 2; j < sqr.Y + sqr.H / 2; j++)
+        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
           newImg.SetPixel(i, j, sqr.Color);
       }
     }
@@ -75,10 +75,18 @@ public class Quads
   static private bool Run(string path)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
-    for (; N > 0; N--)
+    if (N == -1)
     {
-      Err(qt);
-      qt.max().subdivide();
+      while (Err(qt) > 3000000)
+        qt.max().subdivide();
+    }
+    else
+    {
+      for (; N > 0; N--)
+      {
+        Err(qt);
+        qt.max().subdivide();
+      }
     }
     Save(path);
     return true;
@@ -86,13 +94,15 @@ public class Quads
 
   static public int Main(string[] args)
   {
-    if (args.Length < 2)
+    if (args.Length < 1)
     {
       Console.Error.WriteLine("This program takes 2 arguments.");
       return 1;
     }
     img = new Bitmap(args[0]);
-    if (!Int32.TryParse(args[1], out N))
+    if (args.Length == 1)
+      N = -1;
+    else if (!Int32.TryParse(args[1], out N))
     {
       Console.Error.WriteLine("The last argument should be an integer.");
       return 1;

@@ -13,5 +13,4 @@ $(OUT):
 	$(CC) -r:$(REF) $(SRC) $(FLAGS) -out:$(OUT)
 
 clean:
-	rm -f $(OUT)
-	rm -f $(OUT).mdb
+	rm -f $(OUT)*

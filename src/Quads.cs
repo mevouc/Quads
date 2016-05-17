@@ -59,55 +59,19 @@ public class Quads
     return err;
   }
 
-  static private double FractOfSquares(double a, double b, double c)
-  {
-    return ((a - b) * (a - b)) / (c * c);
-  }
-
-  static private bool InEllipse(double x, double y, double xc, double yc,
-      double rx, double ry)
-  {
-    return (FractOfSquares(x, xc, rx) + FractOfSquares(y, yc, ry)) <= 1;
-  }
-
-  static private void Render(Square sqr, Bitmap img, Color circle)
-  {
-    if (circle == Color.Empty)
-    {
-      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
-      {
-        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
-          img.SetPixel(i, j, sqr.Color);
-      }
-    }
-    else
-    {
-      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
-      {
-        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
-        {
-          double xc = (double)sqr.X + (double)sqr.W / 2.0;
-          double yc = (double)sqr.Y + (double)sqr.H / 2.0;
-          if (InEllipse(i, j, xc, yc, (double)sqr.W / 2.0, (double)sqr.H / 2.0))
-            img.SetPixel(i, j, sqr.Color);
-          else
-            img.SetPixel(i, j, circle);
-        }
-      }
-    }
-  }
-
   static private bool Save(string path, Color circle)
   {
     try
     {
       Bitmap newImg = new Bitmap(img.Width, img.Height);
       foreach (Square sqr in squares)
-        Render(sqr, newImg, circle);
+        sqr.Render(newImg, circle);
       newImg.Save(path);
     }
     catch
     {
+      Console.Error.Write("Can't save the generated image. Please check the");
+      Console.Error.WriteLine(" writing rights of the destination folder.");
       return false;
     }
     return true;
@@ -116,7 +80,7 @@ public class Quads
   static private bool Run(string path, Color circle)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
-    if (N == -1)
+    if (N < 0)
     {
       while (ErrorSort(qt) > 3000000)
         qt.Max().Subdivide();
@@ -127,11 +91,6 @@ public class Quads
         qt.Max().Subdivide();
     }
     return Save(path, circle);
-  }
-
-  static private void Help()
-  {
-    Console.WriteLine("Help.");
   }
 
   static private bool CheckHexChar(string str)
@@ -153,6 +112,8 @@ public class Quads
      * #RRGGBB
      * RRGGBB
      */
+    if (str == ".")
+      return Color.Black;
     switch (str.Length)
     {
     case 6:
@@ -180,6 +141,11 @@ public class Quads
     byte gg = Byte.Parse(str.Substring(2, 2), NumberStyles.HexNumber);
     byte bb = Byte.Parse(str.Substring(4, 2), NumberStyles.HexNumber);
     return Color.FromArgb(rr, gg, bb);
+  }
+
+  static private void Help()
+  {
+    Console.WriteLine("Help.");
   }
 
   static public int Main(string[] args)

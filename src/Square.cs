@@ -142,4 +142,43 @@ public class Square : ISplitable<Square>
     Quads.RmSquare(this);
     return quarters;
   }
+
+  private double FractOfSquares(double a, double b, double c)
+  {
+    return ((a - b) * (a - b)) / (c * c);
+  }
+
+  private bool InEllipse(double x, double y, double xc, double yc,
+      double rx, double ry)
+  {
+    return (FractOfSquares(x, xc, rx) + FractOfSquares(y, yc, ry)) <= 1;
+  }
+
+  public void Render(Bitmap img, Color circle)
+  {
+    if (circle == Color.Empty)
+    {
+      for (int i = this.X; i < this.X + this.W; i++)
+      {
+        for (int j = this.Y; j < this.Y + this.H; j++)
+          img.SetPixel(i, j, this.Color);
+      }
+    }
+    else
+    {
+      for (int i = this.X; i < this.X + this.W; i++)
+      {
+        for (int j = this.Y; j < this.Y + this.H; j++)
+        {
+          double xc = (double)this.X + (double)this.W / 2.0;
+          double yc = (double)this.Y + (double)this.H / 2.0;
+          if (InEllipse(i, j, xc, yc, this.W / 2.0, this.H / 2.0))
+            img.SetPixel(i, j, this.Color);
+          else
+            img.SetPixel(i, j, circle);
+        }
+      }
+    }
+  }
+
 }

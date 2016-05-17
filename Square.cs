@@ -47,15 +47,24 @@ public class Square : ISplitable<Square>
     private set { this.error = value; }
   }
 
+  private int bound(int a, int left, int right)
+  {
+    if (a < left)
+      return left;
+    if (a > right)
+      return right;
+    return a;
+  }
+
   private Color Average()
   {
     int sumA = 0;
     int sumR = 0;
     int sumG = 0;
     int sumB = 0;
-    for (int i = x; i < x + w; i++)
+    for (int i = this.x; i < this.x + this.w; i++)
     {
-      for (int j = y; j < y + h; j++)
+      for (int j = this.y; j < this.y + this.h; j++)
       {
         Color pixelColor = img.GetPixel(i, j);
         sumA += pixelColor.A;
@@ -64,20 +73,20 @@ public class Square : ISplitable<Square>
         sumB += pixelColor.B;
       }
     }
-    int nbPixels = w * h;
-    int avgA = sumA / nbPixels;
-    int avgR = sumR / nbPixels;
-    int avgG = sumG / nbPixels;
-    int avgB = sumB / nbPixels;
+    int nbPixels = this.w * this.h;
+    int avgA = bound(sumA / nbPixels, 0, 255);
+    int avgR = bound(sumR / nbPixels, 0, 255);
+    int avgG = bound(sumG / nbPixels, 0, 255);
+    int avgB = bound(sumB / nbPixels, 0, 255);
     return Color.FromArgb(avgA, avgR, avgG, avgB);
   }
 
   private int Err()
   {
     int err = 0;
-    for (int i = x; i < x + w; i++)
+    for (int i = this.x; i < this.x + this.w; i++)
     {
-      for (int j = y; j < y + h; j++)
+      for (int j = this.y; j < this.y + this.h; j++)
       {
         err += Math.Abs(color.A - img.GetPixel(i, j).A);
         err += Math.Abs(color.R - img.GetPixel(i, j).R);
@@ -113,8 +122,8 @@ public class Square : ISplitable<Square>
 
   public Square[] split()
   {
-    int halfW = w / 2;
-    int halfH = h / 2;
+    int halfW = this.w / 2;
+    int halfH = this.h / 2;
     if (halfW * halfH == 0)
       return null;
     Square[] smallSquares = new Square[4];
@@ -125,9 +134,9 @@ public class Square : ISplitable<Square>
     if (this.h % 2 != 0)
       tmpH++;
     smallSquares[0] = new Square(this.x, this.y, halfW, halfH);
-    smallSquares[1] = new Square(this.x, this.y + halfH, tmpW, tmpH);
+    smallSquares[1] = new Square(this.x, this.y + halfH, halfW, tmpH);
     smallSquares[2] = new Square(this.x + halfW, this.y + halfH, tmpW, tmpH);
-    smallSquares[3] = new Square(this.x + halfW, this.y, tmpW, tmpH);
+    smallSquares[3] = new Square(this.x + halfW, this.y, tmpW, halfH);
     Quads.RmSquare(this);
     return smallSquares;
   }

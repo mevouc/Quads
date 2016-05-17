@@ -159,25 +159,25 @@ public class Quads
     {
       switch (args[i])
       {
-      case "-h":
+      case "-h": case "--help":
         help = true;
         break;
-      case "-i":
+      case "-i": case "--image":
         if (i + 1 < args.Length)
           img = new Bitmap(args[++i]);
         else
           help = true;
         break;
-      case "-n":
+      case "-n": case "--number":
         help = !(i + 1 < args.Length && Int32.TryParse(args[++i], out N));
         break;
-      case "-o":
+      case "-o": case "--out":
         if (i + 1 < args.Length)
           outPath = args[++i];
         else
           help = true;
         break;
-      case "-c":
+      case "-c": case "--circles":
         if (i + 1 < args.Length)
           help = (circle = HexToColor(args[++i])) == Color.Empty;
         else

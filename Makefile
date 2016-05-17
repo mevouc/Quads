@@ -6,7 +6,7 @@ REF=System.Drawing.dll
 FLAGS=-debug
 
 all:$(OUT)
-	
+
 $(PRJ):$(OUT)
 
 $(OUT):

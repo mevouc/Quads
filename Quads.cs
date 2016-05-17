@@ -148,8 +148,8 @@ public class Quads
 
   static private Color HexToColor(string str)
   {
-    /* #aaRRGGBB
-     * aaRRGGBB
+    /* #AARRGGBB
+     * AARRGGBB
      * #RRGGBB
      * RRGGBB
      */
@@ -167,7 +167,8 @@ public class Quads
       string aa = str.Substring(0, 2);
       if (!CheckHexChar(aa))
         return Color.Empty;
-      return Color.FromArgb(Byte.Parse(aa, NumberStyles.HexNumber), HexToColor(str.Substring(2, 6)));
+      return Color.FromArgb(Byte.Parse(aa, NumberStyles.HexNumber),
+          HexToColor(str.Substring(2, 6)));
     case 9:
       if (str[0] != '#')
         return Color.Empty;

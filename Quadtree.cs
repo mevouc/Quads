@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class Quadtree<T>
   where T : ISplitable<T>
 {
@@ -22,26 +24,31 @@ public class Quadtree<T>
     this.childs = null;
   }
 
-  public bool hasChilds()
+  public bool HasChilds()
   {
     return (this.childs != null);
   }
 
-  public Quadtree<T> max()
+  public Quadtree<T> Max()
   {
-    if (!this.hasChilds())
-      return this;
-    return this.childs[3].max();
+    Quadtree<T> max = this;
+    while (max.HasChilds())
+      max = max.childs[3];
+    return max;
   }
 
-  public bool subdivide()
+  public bool Subdivide()
   {
-    T[] datas = data.split();
+    T[] datas = data.Split();
     if (datas == null || datas.Length != 4)
       return false;
-    this.childs = new Quadtree<T>[4];
-    for (var i = 0; i < 4; i++)
-      this.childs[i] = new Quadtree<T>(datas[i]);
-    return true;
+    if (this.childs == null)
+    {
+      this.childs = new Quadtree<T>[4];
+      for (var i = 0; i < 4; i++)
+        this.childs[i] = new Quadtree<T>(datas[i]);
+      return true;
+    }
+    return false;
   }
 }

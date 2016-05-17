@@ -1,4 +1,4 @@
 public interface ISplitable<T>
 {
-  T[] split();
+  T[] Split();
 }

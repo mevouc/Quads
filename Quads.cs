@@ -30,7 +30,7 @@ public class Quads
     b = tmp;
   }
 
-  static private Quadtree<Square>[] sort(Quadtree<Square>[] qts, int[] errs)
+  static private Quadtree<Square>[] Sort(Quadtree<Square>[] qts, int[] errs)
   {
     for (var i = 0; i < qts.Length; i++)
     {
@@ -43,53 +43,91 @@ public class Quads
     return qts;
   }
 
-  static private int Err(Quadtree<Square> qt)
+  static private int ErrorSort(Quadtree<Square> qt)
   {
-    if (!qt.hasChilds())
+    if (!qt.HasChilds())
       return qt.Data.Error;
     int err = 0;
     int[] errs = new int[qt.Childs.Length];
     for (var i = 0; i < qt.Childs.Length; i++)
     {
-      errs[i] = Err(qt.Childs[i]);
+      errs[i] = ErrorSort(qt.Childs[i]);
       err += errs[i];
     }
-    qt.Childs = sort(qt.Childs, errs);
+    qt.Childs = Sort(qt.Childs, errs);
     return err;
   }
 
-  static void Save(string path)
+  static private double FractOfSquares(double a, double b, double c)
   {
-    Bitmap newImg = new Bitmap(img.Width, img.Height);
-    foreach (Square sqr in squares)
+    return ((a - b) * (a - b)) / (c * c);
+  }
+
+  static private bool InEllipse(double x, double y, double xc, double yc,
+      double rx, double ry)
+  {
+    return (FractOfSquares(x, xc, rx) + FractOfSquares(y, yc, ry)) <= 1;
+  }
+
+  static private void Render(Square sqr, Bitmap img, bool circle)
+  {
+    if (circle)
     {
       for (int i = sqr.X; i < sqr.X + sqr.W; i++)
       {
         for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
-          newImg.SetPixel(i, j, sqr.Color);
+        {
+          double xc = (double)sqr.X + (double)sqr.W / 2.0;
+          double yc = (double)sqr.Y + (double)sqr.H / 2.0;
+          if (InEllipse(i, j, xc, yc, (double)sqr.W / 2.0, (double)sqr.H / 2.0))
+            img.SetPixel(i, j, sqr.Color);
+        }
       }
     }
-    newImg.Save("img/" + path + ".png");
+    else
+    {
+      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
+      {
+        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
+          img.SetPixel(i, j, sqr.Color);
+      }
+    }
   }
 
-  static private bool Run(string path)
+  static private bool Save(string path, bool circle)
+  {
+    try
+    {
+      Bitmap newImg = new Bitmap(img.Width, img.Height);
+      foreach (Square sqr in squares)
+      {
+        Render(sqr, newImg, circle);
+      }
+      newImg.Save("img/" + path + ".png");
+    }
+    catch
+    {
+      return false;
+    }
+    return true;
+  }
+
+  static private bool Run(string path, bool circle)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     if (N == -1)
     {
-      while (Err(qt) > 3000000)
-        qt.max().subdivide();
+      while (ErrorSort(qt) > 3000000)
+        qt.Max().Subdivide();
     }
     else
     {
-      for (; N > 0; N--)
+      for (; N > 0; N--, ErrorSort(qt))
       {
-        Err(qt);
-        qt.max().subdivide();
+        qt.Max().Subdivide();
       }
     }
-    Save(path);
-    return true;
+    return Save(path, circle);
   }
 
   static public int Main(string[] args)
@@ -107,8 +145,9 @@ public class Quads
       Console.Error.WriteLine("The last argument should be an integer.");
       return 1;
     }
+    bool circle = true;
     if (args.Length == 3)
-      return Run(args[2]) ? 0 : 1;
-    return Run("out") ? 0 : 1;
+      return Run(args[2], circle) ? 0 : 1;
+    return Run("out", circle) ? 0 : 1;
   }
 }

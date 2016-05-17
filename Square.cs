@@ -47,7 +47,7 @@ public class Square : ISplitable<Square>
     private set { this.error = value; }
   }
 
-  private int bound(int a, int left, int right)
+  private int Bound(int a, int left, int right)
   {
     if (a < left)
       return left;
@@ -74,15 +74,17 @@ public class Square : ISplitable<Square>
       }
     }
     int nbPixels = this.w * this.h;
-    int avgA = bound(sumA / nbPixels, 0, 255);
-    int avgR = bound(sumR / nbPixels, 0, 255);
-    int avgG = bound(sumG / nbPixels, 0, 255);
-    int avgB = bound(sumB / nbPixels, 0, 255);
+    int avgA = Bound(sumA / nbPixels, 0, 255);
+    int avgR = Bound(sumR / nbPixels, 0, 255);
+    int avgG = Bound(sumG / nbPixels, 0, 255);
+    int avgB = Bound(sumB / nbPixels, 0, 255);
     return Color.FromArgb(avgA, avgR, avgG, avgB);
   }
 
   private int Err()
   {
+    if ((this.w / 2) * (this.h / 2) == 0)
+      return 0;
     int err = 0;
     for (int i = this.x; i < this.x + this.w; i++)
     {
@@ -120,24 +122,24 @@ public class Square : ISplitable<Square>
     Quads.AddSquare(this);
   }
 
-  public Square[] split()
+  public Square[] Split()
   {
     int halfW = this.w / 2;
     int halfH = this.h / 2;
     if (halfW * halfH == 0)
       return null;
-    Square[] smallSquares = new Square[4];
+    Square[] quarters = new Square[4];
     int tmpW = halfW;
     int tmpH = halfH;
     if (this.w % 2 != 0)
       tmpW++;
     if (this.h % 2 != 0)
       tmpH++;
-    smallSquares[0] = new Square(this.x, this.y, halfW, halfH);
-    smallSquares[1] = new Square(this.x, this.y + halfH, halfW, tmpH);
-    smallSquares[2] = new Square(this.x + halfW, this.y + halfH, tmpW, tmpH);
-    smallSquares[3] = new Square(this.x + halfW, this.y, tmpW, halfH);
+    quarters[0] = new Square(this.x, this.y, halfW, halfH);
+    quarters[1] = new Square(this.x, this.y + halfH, halfW, tmpH);
+    quarters[2] = new Square(this.x + halfW, this.y + halfH, tmpW, tmpH);
+    quarters[3] = new Square(this.x + halfW, this.y, tmpW, halfH);
     Quads.RmSquare(this);
-    return smallSquares;
+    return quarters;
   }
 }

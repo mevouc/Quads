@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Globalization;
 
 public class Quads
 {
@@ -69,9 +70,17 @@ public class Quads
     return (FractOfSquares(x, xc, rx) + FractOfSquares(y, yc, ry)) <= 1;
   }
 
-  static private void Render(Square sqr, Bitmap img, bool circle)
+  static private void Render(Square sqr, Bitmap img, Color circle)
   {
-    if (circle)
+    if (circle == Color.Empty)
+    {
+      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
+      {
+        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
+          img.SetPixel(i, j, sqr.Color);
+      }
+    }
+    else
     {
       for (int i = sqr.X; i < sqr.X + sqr.W; i++)
       {
@@ -81,29 +90,21 @@ public class Quads
           double yc = (double)sqr.Y + (double)sqr.H / 2.0;
           if (InEllipse(i, j, xc, yc, (double)sqr.W / 2.0, (double)sqr.H / 2.0))
             img.SetPixel(i, j, sqr.Color);
+          else
+            img.SetPixel(i, j, circle);
         }
-      }
-    }
-    else
-    {
-      for (int i = sqr.X; i < sqr.X + sqr.W; i++)
-      {
-        for (int j = sqr.Y; j < sqr.Y + sqr.H; j++)
-          img.SetPixel(i, j, sqr.Color);
       }
     }
   }
 
-  static private bool Save(string path, bool circle)
+  static private bool Save(string path, Color circle)
   {
     try
     {
       Bitmap newImg = new Bitmap(img.Width, img.Height);
       foreach (Square sqr in squares)
-      {
         Render(sqr, newImg, circle);
-      }
-      newImg.Save("img/" + path + ".png");
+      newImg.Save(path);
     }
     catch
     {
@@ -112,7 +113,7 @@ public class Quads
     return true;
   }
 
-  static private bool Run(string path, bool circle)
+  static private bool Run(string path, Color circle)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     if (N == -1)
@@ -123,31 +124,111 @@ public class Quads
     else
     {
       for (; N > 0; N--, ErrorSort(qt))
-      {
         qt.Max().Subdivide();
-      }
     }
     return Save(path, circle);
   }
 
+  static private void Help()
+  {
+    Console.WriteLine("Help.");
+  }
+
+  static private bool CheckHexChar(string str)
+  {
+    bool ok = true;
+    for (int i = 0; ok && i < str.Length; i++)
+    {
+      ok = ok && ((str[i] >= '0' && str[i] <= '9')
+          || (str[i] >= 'A' && str[i] <= 'F')
+          || (str[i] >= 'a' && str[i] <= 'f'));
+    }
+    return ok;
+  }
+
+  static private Color HexToColor(string str)
+  {
+    /* #aaRRGGBB
+     * aaRRGGBB
+     * #RRGGBB
+     * RRGGBB
+     */
+    switch (str.Length)
+    {
+    case 6:
+      if (!CheckHexChar(str))
+        return Color.Empty;
+      break;
+    case 7:
+      if (str[0] != '#')
+        return Color.Empty;
+      return HexToColor(str.Substring(1));
+    case 8:
+      string aa = str.Substring(0, 2);
+      if (!CheckHexChar(aa))
+        return Color.Empty;
+      return Color.FromArgb(Byte.Parse(aa, NumberStyles.HexNumber), HexToColor(str.Substring(2, 6)));
+    case 9:
+      if (str[0] != '#')
+        return Color.Empty;
+      return HexToColor(str.Substring(1));
+    default:
+      return Color.Empty;
+    }
+    byte rr = Byte.Parse(str.Substring(0, 2), NumberStyles.HexNumber);
+    byte gg = Byte.Parse(str.Substring(2, 2), NumberStyles.HexNumber);
+    byte bb = Byte.Parse(str.Substring(4, 2), NumberStyles.HexNumber);
+    return Color.FromArgb(rr, gg, bb);
+  }
+
   static public int Main(string[] args)
   {
-    if (args.Length < 1)
+    bool help = args.Length < 1;
+    Color circle = Color.Empty;
+    string outPath = null;
+    N = -1;
+    int i = 0;
+    while (!help && i < args.Length)
     {
-      Console.Error.WriteLine("This program takes 2 arguments.");
-      return 1;
+      switch (args[i])
+      {
+      case "-h":
+        help = true;
+        break;
+      case "-i":
+        if (i + 1 < args.Length)
+          img = new Bitmap(args[++i]);
+        else
+          help = true;
+        break;
+      case "-n":
+        help = !(i + 1 < args.Length && Int32.TryParse(args[++i], out N));
+        break;
+      case "-o":
+        if (i + 1 < args.Length)
+          outPath = args[++i];
+        else
+          help = true;
+        break;
+      case "-c":
+        if (i + 1 < args.Length)
+          help = (circle = HexToColor(args[++i])) == Color.Empty;
+        else
+          help = true;
+        break;
+      default:
+        help = true;
+        break;
+      }
+      i++;
     }
-    img = new Bitmap(args[0]);
-    if (args.Length == 1)
-      N = -1;
-    else if (!Int32.TryParse(args[1], out N))
+    if (!help)
     {
-      Console.Error.WriteLine("The last argument should be an integer.");
-      return 1;
+      if (outPath != null)
+        return Run(outPath, circle) ? 0 : 1;
+      return Run("img/out.png", circle) ? 0 : 1;
     }
-    bool circle = true;
-    if (args.Length == 3)
-      return Run(args[2], circle) ? 0 : 1;
-    return Run("out", circle) ? 0 : 1;
+    Help();
+    return 0;
   }
 }

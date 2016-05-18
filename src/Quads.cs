@@ -59,13 +59,13 @@ public class Quads
     return err;
   }
 
-  static private bool Save(string path, Color circle)
+  static private bool Save(string path, Shape shape, Color color)
   {
     try
     {
       Bitmap newImg = new Bitmap(img.Width, img.Height);
       foreach (Square sqr in squares)
-        sqr.Render(newImg, circle);
+        sqr.Render(newImg, shape, color);
       newImg.Save(path);
     }
     catch
@@ -77,7 +77,7 @@ public class Quads
     return true;
   }
 
-  static private bool Run(string path, Color circle)
+  static private bool Run(string path, Shape shape, Color color)
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     if (N < 0)
@@ -90,7 +90,7 @@ public class Quads
       for (; N > 0; N--, ErrorSort(qt))
         qt.Max().Subdivide();
     }
-    return Save(path, circle);
+    return Save(path, shape, color);
   }
 
   static private bool CheckHexChar(string str)
@@ -151,7 +151,9 @@ public class Quads
   static public int Main(string[] args)
   {
     bool help = args.Length < 1;
-    Color circle = Color.Empty;
+    bool circle = false;
+    bool diamond = false;
+    Color color = Color.Empty;
     string outPath = null;
     N = -1;
     int i = 0;
@@ -177,9 +179,15 @@ public class Quads
         else
           help = true;
         break;
+      case "-d": case "--diamond":
+        if (!circle && i + 1 < args.Length)
+          diamond = !(help = (color = HexToColor(args[++i])) == Color.Empty);
+        else
+          help = true;
+        break;
       case "-c": case "--circles":
-        if (i + 1 < args.Length)
-          help = (circle = HexToColor(args[++i])) == Color.Empty;
+        if (!diamond && i + 1 < args.Length)
+          circle = !(help = (color = HexToColor(args[++i])) == Color.Empty);
         else
           help = true;
         break;
@@ -191,9 +199,14 @@ public class Quads
     }
     if (!help)
     {
+      Shape shape = Shape.Square;
+      if (circle)
+        shape = Shape.Circle;
+      else if (diamond)
+        shape = Shape.Rhombus;
       if (outPath != null)
-        return Run(outPath, circle) ? 0 : 1;
-      return Run("img/out.png", circle) ? 0 : 1;
+        return Run(outPath, shape, color) ? 0 : 1;
+      return Run("img/out.png", shape, color) ? 0 : 1;
     }
     Help();
     return 0;

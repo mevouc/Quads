@@ -143,42 +143,79 @@ public class Square : ISplitable<Square>
     return quarters;
   }
 
-  private double FractOfSquares(double a, double b, double c)
+  private void RenderSquare(Bitmap img)
+  {
+    for (int i = this.x; i < this.x + this.w; i++)
+    {
+      for (int j = this.y; j < this.y + this.h; j++)
+        img.SetPixel(i, j, this.color);
+    }
+  }
+
+  private double FractOfSqr(double a, double b, double c)
   {
     return ((a - b) * (a - b)) / (c * c);
   }
 
-  private bool InEllipse(double x, double y, double xc, double yc,
-      double rx, double ry)
+  private bool InEllipse(double x, double y)
   {
-    return (FractOfSquares(x, xc, rx) + FractOfSquares(y, yc, ry)) <= 1;
+    double rx = (double)this.w / 2.0;
+    double ry = (double)this.h / 2.0;
+    double xc = this.x + rx;
+    double yc = this.y + ry;
+    return (this.FractOfSqr(x, xc, rx) + this.FractOfSqr(y, yc, ry)) <= 1;
   }
 
-  public void Render(Bitmap img, Color circle)
+  private void RenderCircle(Bitmap img, Color color)
   {
-    if (circle == Color.Empty)
+    for (int i = this.x; i < this.x + this.w; i++)
     {
-      for (int i = this.X; i < this.X + this.W; i++)
+      for (int j = this.y; j < this.y + this.h; j++)
       {
-        for (int j = this.Y; j < this.Y + this.H; j++)
-          img.SetPixel(i, j, this.Color);
-      }
-    }
-    else
-    {
-      for (int i = this.X; i < this.X + this.W; i++)
-      {
-        for (int j = this.Y; j < this.Y + this.H; j++)
-        {
-          double xc = (double)this.X + (double)this.W / 2.0;
-          double yc = (double)this.Y + (double)this.H / 2.0;
-          if (InEllipse(i, j, xc, yc, this.W / 2.0, this.H / 2.0))
-            img.SetPixel(i, j, this.Color);
-          else
-            img.SetPixel(i, j, circle);
-        }
+        if (this.InEllipse(i, j))
+          img.SetPixel(i, j, this.color);
+        else
+          img.SetPixel(i, j, color);
       }
     }
   }
 
+  private bool InRhombus(double x, double y)
+  {
+    double rx = (double)this.w / 2.0;
+    double ry = (double)this.h / 2.0;
+    double xc = this.x + rx;
+    double yc = this.y + ry;
+    return (Math.Abs(x - xc) / rx + Math.Abs(y - yc) / ry) <= 1;
+  }
+
+  private void RenderRhombus(Bitmap img, Color color)
+  {
+    for (int i = this.x; i < this.x + this.w; i++)
+    {
+      for (int j = this.y; j < this.y + this.h; j++)
+      {
+        if (InRhombus(i, j))
+          img.SetPixel(i, j, this.color);
+        else
+          img.SetPixel(i, j, color);
+      }
+    }
+  }
+
+  public void Render(Bitmap img, Shape shape, Color color)
+  {
+    switch (shape)
+    {
+    case Shape.Square:
+      RenderSquare(img);
+      break;
+    case Shape.Circle:
+      RenderCircle(img, color);
+      break;
+    case Shape.Rhombus:
+      RenderRhombus(img, color);
+      break;
+    }
+  }
 }

@@ -153,6 +153,7 @@ public class Quads
     bool help = args.Length < 1;
     bool circle = false;
     bool diamond = false;
+    bool edges = false;
     Color color = Color.Empty;
     string outPath = null;
     N = -1;
@@ -180,14 +181,20 @@ public class Quads
           help = true;
         break;
       case "-d": case "--diamond":
-        if (!circle && i + 1 < args.Length)
+        if (!(circle || edges) && i + 1 < args.Length)
           diamond = !(help = (color = HexToColor(args[++i])) == Color.Empty);
         else
           help = true;
         break;
       case "-c": case "--circles":
-        if (!diamond && i + 1 < args.Length)
+        if (!(diamond || edges) && i + 1 < args.Length)
           circle = !(help = (color = HexToColor(args[++i])) == Color.Empty);
+        else
+          help = true;
+        break;
+      case "-e": case "--edges":
+        if (!(circle || diamond) && i + 1 < args.Length)
+          edges = !(help = (color = HexToColor(args[++i])) == Color.Empty);
         else
           help = true;
         break;
@@ -197,6 +204,7 @@ public class Quads
       }
       i++;
     }
+    help = help || (img == null);
     if (!help)
     {
       Shape shape = Shape.Square;
@@ -204,6 +212,8 @@ public class Quads
         shape = Shape.Circle;
       else if (diamond)
         shape = Shape.Rhombus;
+      else if (edges)
+        shape = Shape.Edges;
       if (outPath != null)
         return Run(outPath, shape, color) ? 0 : 1;
       return Run("img/out.png", shape, color) ? 0 : 1;

@@ -203,6 +203,19 @@ public class Square : ISplitable<Square>
     }
   }
 
+  private void RenderEdges(Bitmap img, Color color)
+  {
+    for (int i = this.x + 1; i < this.x + this.w; i++)
+    {
+      for (int j = this.y + 1; j < this.y + this.h; j++)
+        img.SetPixel(i, j, this.color);
+    }
+    for (int i = this.x; i < this.x + this.w; i++)
+      img.SetPixel(i, this.y, color);
+    for (int j = this.y; j < this.y + this.h; j++)
+      img.SetPixel(this.x, j, color);
+  }
+
   public void Render(Bitmap img, Shape shape, Color color)
   {
     switch (shape)
@@ -215,6 +228,9 @@ public class Square : ISplitable<Square>
       break;
     case Shape.Rhombus:
       RenderRhombus(img, color);
+      break;
+    case Shape.Edges:
+      RenderEdges(img, color);
       break;
     }
   }

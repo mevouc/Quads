@@ -105,47 +105,112 @@ public class Quads
     return ok;
   }
 
-  static private Color HexToColor(string str)
+  static private bool HexToColor(string str, out Color color)
   {
     /* #AARRGGBB
      * AARRGGBB
      * #RRGGBB
      * RRGGBB
      */
+    color = Color.Empty;
     if (str == ".")
-      return Color.Black;
+    {
+      color = Color.Black;
+      return true;
+    }
     switch (str.Length)
     {
     case 6:
       if (!CheckHexChar(str))
-        return Color.Empty;
+        return false;
       break;
     case 7:
       if (str[0] != '#')
-        return Color.Empty;
-      return HexToColor(str.Substring(1));
+        return false;
+      return HexToColor(str.Substring(1), out color);
     case 8:
       string aa = str.Substring(0, 2);
       if (!CheckHexChar(aa))
-        return Color.Empty;
-      return Color.FromArgb(Byte.Parse(aa, NumberStyles.HexNumber),
-          HexToColor(str.Substring(2, 6)));
+        return false;
+      if (HexToColor(str.Substring(2, 6), out color))
+        color = Color.FromArgb(Byte.Parse(aa, NumberStyles.HexNumber), color);
+      return true;
     case 9:
       if (str[0] != '#')
-        return Color.Empty;
-      return HexToColor(str.Substring(1));
+        return false;
+      return HexToColor(str.Substring(1), out color);
     default:
-      return Color.Empty;
+      return false;
     }
     byte rr = Byte.Parse(str.Substring(0, 2), NumberStyles.HexNumber);
     byte gg = Byte.Parse(str.Substring(2, 2), NumberStyles.HexNumber);
     byte bb = Byte.Parse(str.Substring(4, 2), NumberStyles.HexNumber);
-    return Color.FromArgb(rr, gg, bb);
+    color = Color.FromArgb(rr, gg, bb);
+    return true;
+  }
+
+  static private bool TryParseBitmap(string str, out Bitmap img)
+  {
+    try
+    {
+      img = new Bitmap(str);
+    }
+    catch
+    {
+      img = null;
+      return false;
+    }
+    return true;
   }
 
   static private void Help()
   {
     Console.WriteLine("Help.");
+  }
+
+  /*
+   * Return if need of prompting help.
+   */
+  static private bool ParseArg(string[] args, ref int i, ref Bitmap img,
+      ref int N, ref string outPath, ref bool circle, ref bool diamond,
+      ref bool edges, ref Color color)
+  {
+    switch (args[i])
+    {
+    case "-h": case "--help":
+      return true;
+    case "-i": case "--image":
+      return !(i + 1 < args.Length && TryParseBitmap(args[++i], out img));
+    case "-n": case "--number":
+      return !(i + 1 < args.Length && Int32.TryParse(args[++i], out N));
+    case "-o": case "--out":
+      return !(i + 1 < args.Length && (outPath = args[++i]) != null);
+    case "-d": case "--diamond":
+      return ((circle || edges) || !(i + 1 < args.Length))
+        || !(diamond = HexToColor(args[++i], out color));
+    case "-c": case "--circle":
+      return ((diamond || edges) || !(i + 1 < args.Length))
+        || !(circle = HexToColor(args[++i], out color));
+    case "-e": case "--edges":
+      return ((circle || diamond) || !(i + 1 < args.Length))
+        || !(edges = HexToColor(args[++i], out color));
+    }
+    return true;
+  }
+
+  static private int Run(bool circle, bool diamond, bool edges, string outPath,
+      Color color)
+  {
+    Shape shape = Shape.Square;
+    if (circle)
+      shape = Shape.Circle;
+    else if (diamond)
+      shape = Shape.Rhombus;
+    else if (edges)
+      shape = Shape.Edges;
+    if (outPath != null)
+      return Run(outPath, shape, color) ? 0 : 1;
+    return Run("img/out.png", shape, color) ? 0 : 1;
   }
 
   static public int Main(string[] args)
@@ -160,64 +225,12 @@ public class Quads
     int i = 0;
     while (!help && i < args.Length)
     {
-      switch (args[i])
-      {
-      case "-h": case "--help":
-        help = true;
-        break;
-      case "-i": case "--image":
-        if (i + 1 < args.Length)
-          img = new Bitmap(args[++i]);
-        else
-          help = true;
-        break;
-      case "-n": case "--number":
-        help = !(i + 1 < args.Length && Int32.TryParse(args[++i], out N));
-        break;
-      case "-o": case "--out":
-        if (i + 1 < args.Length)
-          outPath = args[++i];
-        else
-          help = true;
-        break;
-      case "-d": case "--diamond":
-        if (!(circle || edges) && i + 1 < args.Length)
-          diamond = !(help = (color = HexToColor(args[++i])) == Color.Empty);
-        else
-          help = true;
-        break;
-      case "-c": case "--circles":
-        if (!(diamond || edges) && i + 1 < args.Length)
-          circle = !(help = (color = HexToColor(args[++i])) == Color.Empty);
-        else
-          help = true;
-        break;
-      case "-e": case "--edges":
-        if (!(circle || diamond) && i + 1 < args.Length)
-          edges = !(help = (color = HexToColor(args[++i])) == Color.Empty);
-        else
-          help = true;
-        break;
-      default:
-        help = true;
-        break;
-      }
+      help = ParseArg(args, ref i, ref img, ref N, ref outPath, ref circle,
+          ref diamond, ref edges, ref color);
       i++;
     }
-    help = help || (img == null);
     if (!help)
-    {
-      Shape shape = Shape.Square;
-      if (circle)
-        shape = Shape.Circle;
-      else if (diamond)
-        shape = Shape.Rhombus;
-      else if (edges)
-        shape = Shape.Edges;
-      if (outPath != null)
-        return Run(outPath, shape, color) ? 0 : 1;
-      return Run("img/out.png", shape, color) ? 0 : 1;
-    }
+      return Run(circle, diamond, edges, outPath, color);
     Help();
     return 0;
   }

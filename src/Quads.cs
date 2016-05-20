@@ -31,25 +31,23 @@ public class Quads
     b = tmp;
   }
 
-  static private Quadtree<Square>[] Sort(Quadtree<Square>[] qts, int[] errs)
+  static private Quadtree<Square>[] Sort(Quadtree<Square>[] qts, double[] errs)
   {
     for (var i = 0; i < qts.Length; i++)
-    {
       for (var j = i; j > 0 && errs[j - 1] > errs[j]; j--)
       {
         Swap<Quadtree<Square>>(ref qts[j], ref qts[j - 1]);
-        Swap<int>(ref errs[j], ref errs[j - 1]);
+        Swap<double>(ref errs[j], ref errs[j - 1]);
       }
-    }
     return qts;
   }
 
-  static private int ErrorSort(Quadtree<Square> qt)
+  static private double ErrorSort(Quadtree<Square> qt)
   {
     if (!qt.HasChilds())
       return qt.Data.Error;
-    int err = 0;
-    int[] errs = new int[qt.Childs.Length];
+    double err = 0;
+    double[] errs = new double[qt.Childs.Length];
     for (var i = 0; i < qt.Childs.Length; i++)
     {
       errs[i] = ErrorSort(qt.Childs[i]);
@@ -81,15 +79,11 @@ public class Quads
   {
     Quadtree<Square> qt = new Quadtree<Square>(new Square(img));
     if (N < 0)
-    {
       while (ErrorSort(qt) > 3000000)
         qt.Max().Subdivide();
-    }
     else
-    {
       for (; N > 0; N--, ErrorSort(qt))
         qt.Max().Subdivide();
-    }
     return Save(path, shape, color);
   }
 
@@ -97,11 +91,9 @@ public class Quads
   {
     bool ok = true;
     for (int i = 0; ok && i < str.Length; i++)
-    {
       ok = ok && ((str[i] >= '0' && str[i] <= '9')
-          || (str[i] >= 'A' && str[i] <= 'F')
-          || (str[i] >= 'a' && str[i] <= 'f'));
-    }
+           || (str[i] >= 'A' && str[i] <= 'F')
+           || (str[i] >= 'a' && str[i] <= 'f'));
     return ok;
   }
 

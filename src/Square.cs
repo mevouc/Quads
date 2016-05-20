@@ -8,7 +8,7 @@ public class Square : ISplitable<Square>
   private int w;
   private int h;
   private Color color;
-  private int error;
+  private double error;
   static private Bitmap img;
 
   public int X
@@ -41,7 +41,7 @@ public class Square : ISplitable<Square>
     private set { this.color = value; }
   }
 
-  public int Error
+  public double Error
   {
     get { return this.error; }
     private set { this.error = value; }
@@ -63,7 +63,6 @@ public class Square : ISplitable<Square>
     int sumG = 0;
     int sumB = 0;
     for (int i = this.x; i < this.x + this.w; i++)
-    {
       for (int j = this.y; j < this.y + this.h; j++)
       {
         Color pixelColor = img.GetPixel(i, j);
@@ -72,7 +71,6 @@ public class Square : ISplitable<Square>
         sumG += pixelColor.G;
         sumB += pixelColor.B;
       }
-    }
     int nbPixels = this.w * this.h;
     int avgA = Bound(sumA / nbPixels, 0, 255);
     int avgR = Bound(sumR / nbPixels, 0, 255);
@@ -81,13 +79,12 @@ public class Square : ISplitable<Square>
     return Color.FromArgb(avgA, avgR, avgG, avgB);
   }
 
-  private int Err()
+  private double Err()
   {
     if ((this.w / 2) * (this.h / 2) == 0)
       return 0;
-    int err = 0;
+    double err = 0;
     for (int i = this.x; i < this.x + this.w; i++)
-    {
       for (int j = this.y; j < this.y + this.h; j++)
       {
         err += Math.Abs(color.A - img.GetPixel(i, j).A);
@@ -95,7 +92,6 @@ public class Square : ISplitable<Square>
         err += Math.Abs(color.G - img.GetPixel(i, j).G);
         err += Math.Abs(color.B - img.GetPixel(i, j).B);
       }
-    }
     return err;
   }
 
@@ -146,10 +142,8 @@ public class Square : ISplitable<Square>
   private void RenderSquare(Bitmap img)
   {
     for (int i = this.x; i < this.x + this.w; i++)
-    {
       for (int j = this.y; j < this.y + this.h; j++)
         img.SetPixel(i, j, this.color);
-    }
   }
 
   private double FractOfSqr(double a, double b, double c)
@@ -169,15 +163,11 @@ public class Square : ISplitable<Square>
   private void RenderCircle(Bitmap img, Color color)
   {
     for (int i = this.x; i < this.x + this.w; i++)
-    {
       for (int j = this.y; j < this.y + this.h; j++)
-      {
         if (this.InEllipse(i, j))
           img.SetPixel(i, j, this.color);
         else
           img.SetPixel(i, j, color);
-      }
-    }
   }
 
   private bool InRhombus(double x, double y)
@@ -192,24 +182,18 @@ public class Square : ISplitable<Square>
   private void RenderRhombus(Bitmap img, Color color)
   {
     for (int i = this.x; i < this.x + this.w; i++)
-    {
       for (int j = this.y; j < this.y + this.h; j++)
-      {
         if (InRhombus(i, j))
           img.SetPixel(i, j, this.color);
         else
           img.SetPixel(i, j, color);
-      }
-    }
   }
 
   private void RenderEdges(Bitmap img, Color color)
   {
     for (int i = this.x + 1; i < this.x + this.w; i++)
-    {
       for (int j = this.y + 1; j < this.y + this.h; j++)
         img.SetPixel(i, j, this.color);
-    }
     for (int i = this.x; i < this.x + this.w; i++)
       img.SetPixel(i, this.y, color);
     for (int j = this.y; j < this.y + this.h; j++)
